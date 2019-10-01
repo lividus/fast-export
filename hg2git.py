@@ -87,12 +87,12 @@ def get_changeset(ui,repo,revision,authors={},encoding=''):
     codecs_list = codecs_for_import
     if encoding not in codecs_list:
       codecs_list = [encoding] + codecs_for_import
-    for codec in codecs_list:
+    for c in codecs_list:
         try:
-            user = user.decode(codec).encode('utf8')
-            desc = desc.decode(codec).encode('utf8')
+            user = user.decode(c).encode('utf8')
+            desc = desc.decode(c).encode('utf8')
             break
-        except TypeError:
+        except UnicodeDecodeError:
             pass
 
             
