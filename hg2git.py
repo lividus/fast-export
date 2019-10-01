@@ -20,6 +20,7 @@ origin_name=''
 user_re=re.compile('([^<]+) (<[^>]*>)$')
 # silly regex to clean out user names
 user_clean_re=re.compile('^["]([^"]+)["]$')
+codecs_for_import = ['cp869', 'cp1251', 'cp1252', 'utf_32', 'utf_32_be', 'utf_32_le', 'utf_16', 'utf_16_be', 'utf_16_le', 'utf_7', 'utf_8', 'utf_8_sig']
 
 def set_default_branch(name):
   global cfg_master
@@ -83,8 +84,19 @@ def get_changeset(ui,repo,revision,authors={},encoding=''):
     node=revision # We got a raw hash
   (manifest,user,(time,timezone),files,desc,extra)=repo.changelog.read(node)
   if encoding:
-    user=user.decode(encoding).encode('utf8')
-    desc=desc.decode(encoding).encode('utf8')
+    codecs_list = codecs_for_import
+    if encoding not in codecs_list:
+      codecs_list = [encoding] + codecs_for_import
+    for codec in codecs_list:
+        try:
+            user = user.decode(codec).encode('utf8')
+            desc = desc.decode(codec).encode('utf8')
+            break
+        except TypeError:
+            pass
+
+            
+
   tz="%+03d%02d" % (-timezone / 3600, ((-timezone % 3600) / 60))
   branch=get_branch(extra.get('branch','master'))
   return (node,manifest,fixup_user(user,authors),(time,tz),files,desc,branch,extra)
