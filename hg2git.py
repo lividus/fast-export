@@ -6,6 +6,7 @@
 from mercurial import hg,util,ui,templatefilters
 from mercurial import error as hgerror
 from mercurial.scmutil import revsymbol,binnode
+import chardet
 
 import re
 import os
@@ -84,17 +85,27 @@ def get_changeset(ui,repo,revision,authors={},encoding=''):
     node=revision # We got a raw hash
   (manifest,user,(time,timezone),files,desc,extra)=repo.changelog.read(node)
   if encoding:
-    codecs_list = codecs_for_import
-    if encoding not in codecs_list:
-      codecs_list = [encoding] + codecs_for_import
-    for c in codecs_list:
-        try:
-            user = user.decode(c).encode('utf8')
-            desc = desc.decode(c).encode('utf8')
-            break
-        except UnicodeDecodeError:
-            pass
+    #codecs_list = codecs_for_import
+    #if encoding not in codecs_list:
+    #  codecs_list = [encoding] + codecs_for_import
+    # for c in codecs_list:
+    #     try:
+    #         user = user.decode(c).encode('utf8')
+    #         desc = desc.decode(c).encode('utf8')
+    #         break
+    #     except UnicodeDecodeError:
+    #         pass
 
+    try:
+      user_codec = chardet.detect(user)['encoding']
+      user = user.decode(user_codec).encode('utf8')
+    except UnicodeDecodeError:
+      sys.stdout.write(' "user" decode error' + "\n")
+    try:
+      desc_codec = chardet.detect(desc)['encoding']
+      desc = desc.decode(desc_codec).encode('utf8')
+    except UnicodeDecodeError:
+      sys.stdout.write(' "desc" decode error' + "\n")
             
 
   tz="%+03d%02d" % (-timezone / 3600, ((-timezone % 3600) / 60))
